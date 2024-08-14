@@ -17,10 +17,10 @@ namespace BlogAppAPI.Controllers
             _blogPostRepository = blogPostRepository;
         }
 
-        [HttpGet("/api/BlogDetails/{urlHandle}")]
+        [HttpGet("/api/BlogPost/details/{urlHandle}")]
         public async Task<IActionResult> GetByUrlHandle(string urlHandle)
         {
-            var blogPost = await _blogPostRepository.Get(urlHandle);
+            var blogPost = await _blogPostRepository.GetByUrl(urlHandle);
             if (blogPost == null)
             {
                 return NotFound(new ErrorResponseDto("Blog post not found."));

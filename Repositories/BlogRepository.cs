@@ -14,10 +14,11 @@ namespace BlogAppAPI.Repositories
             _appDbContext = appDbContext;
         }
 
-        public async Task<BlogPostGetDto> Get(string urlHandle)
+        public async Task<BlogPostGetDto> GetByUrl(string urlHandle)
         {
             var blogPost = await _appDbContext.BlogPosts
                 .Where(x => x.UrlHandle == urlHandle)
+                .Include(x => x.Categories)
                 .Select(x => new BlogPostGetDto
                 {
                     Id = x.Id,
@@ -39,6 +40,7 @@ namespace BlogAppAPI.Repositories
 
             return blogPost;
         }
+
 
         public int Count()
         {

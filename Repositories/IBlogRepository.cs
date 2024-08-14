@@ -10,7 +10,7 @@ namespace BlogAppAPI.Repositories
         public Task Create(BlogPostCreateDto blogPost);
         public Task Update(Guid id, BlogPostCreateDto blogPost);
         public Task Delete(Guid id);
-        public Task<BlogPostGetDto> Get(string urlHandle);
+        public Task<BlogPostGetDto> GetByUrl(string urlHandle);
         public int Count();
     }
 }
