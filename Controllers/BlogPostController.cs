@@ -2,7 +2,9 @@
 using BlogAppAPI.Models.Domain;
 using BlogAppAPI.Models.DTO;
 using BlogAppAPI.Repositories;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Swashbuckle.AspNetCore.Annotations;
 
 namespace BlogAppAPI.Controllers
 {
@@ -17,19 +19,8 @@ namespace BlogAppAPI.Controllers
             _blogPostRepository = blogPostRepository;
         }
 
-        [HttpGet("/api/BlogPost/details/{urlHandle}")]
-        public async Task<IActionResult> GetByUrlHandle(string urlHandle)
-        {
-            var blogPost = await _blogPostRepository.GetByUrl(urlHandle);
-            if (blogPost == null)
-            {
-                return NotFound(new ErrorResponseDto("Blog post not found."));
-            }
-            
-            return Ok(blogPost);
-        }
-
         [HttpGet]
+        [SwaggerOperation("Get Blog Posts by Page")]
         public async Task<IActionResult> Get(int page = 1)
         {
             var blogPosts = await _blogPostRepository.Get(page);
@@ -49,7 +40,8 @@ namespace BlogAppAPI.Controllers
             return Ok(result);
         }
 
-        [HttpGet("{id}")]
+        [HttpGet("{id:guid}")]
+        [SwaggerOperation("Get Blog Post by Id")]
         public async Task<IActionResult> GetById(Guid id)
         {
             var blogPost = await _blogPostRepository.Get(id);
@@ -61,7 +53,21 @@ namespace BlogAppAPI.Controllers
             return Ok(blogPost);
         }
 
+        [HttpGet("{urlHandle}")]
+        [SwaggerOperation("Get Blog Post by UrlHandle")]
+        public async Task<IActionResult> GetByUrlHandle(string urlHandle)
+        {
+            var blogPost = await _blogPostRepository.GetByUrl(urlHandle);
+            if (blogPost == null)
+            {
+                return NotFound(new ErrorResponseDto("Blog post not found."));
+            }
+
+            return Ok(blogPost);
+        }
+
         [HttpPost]
+        [SwaggerOperation("Create Blog Post")]
         public async Task<IActionResult> Create(BlogPostCreateDto blogPost)
         {
             if (blogPost == null)
@@ -81,6 +87,7 @@ namespace BlogAppAPI.Controllers
         }
 
         [HttpPut("{id}")]
+        [SwaggerOperation("Update Blog Post by Id")]
         public async Task<IActionResult> Update(Guid id, BlogPostCreateDto blogPost)
         {
             await _blogPostRepository.Update(id, blogPost);
@@ -88,7 +95,8 @@ namespace BlogAppAPI.Controllers
         }
 
         [HttpDelete("{id}")]
-            public async Task<IActionResult> Delete(Guid id)
+        [SwaggerOperation("Delete Blog Post by Page")]
+        public async Task<IActionResult> Delete(Guid id)
         {
             var existingBlogPost = await _blogPostRepository.Get(id);
             if (existingBlogPost == null)

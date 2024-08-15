@@ -14,6 +14,64 @@ namespace BlogAppAPI.Repositories
             _appDbContext = appDbContext;
         }
 
+        public async Task<List<BlogPostGetDto>> Get(int page = 1)
+        {
+            if (page < 0)
+            {
+                page = 1;
+            }
+
+            var blogPosts = await _appDbContext.BlogPosts
+                .Include(x => x.Categories)
+                .Select(x => new BlogPostGetDto
+                {
+                    Id = x.Id,
+                    Title = x.Title,
+                    ShortDescription = x.ShortDescription,
+                    Content = x.Content,
+                    FeatureImageUrl = x.FeatureImageUrl,
+                    UrlHandle = x.UrlHandle,
+                    PublishDate = x.PublishDate,
+                    Author = x.Author,
+                    IsVisible = x.IsVisible,
+                    Categories = x.Categories.Select(c => new CategoryGetDto
+                    {
+                        Id = c.Id,
+                        Name = c.Name,
+                        UrlHandle = c.UrlHandle
+                    }).ToList()
+                }).Skip((page - 1) * 6).Take(6).ToListAsync();
+
+            return blogPosts;
+        }
+
+        public async Task<BlogPostGetDto> Get(Guid id)
+        {
+            var blogPost = await _appDbContext.BlogPosts
+                .Where(x => x.Id == id)
+                .Include(x => x.Categories).Where(blogPost => blogPost.Id == id)
+                .Select(x => new BlogPostGetDto
+                {
+                    Id = x.Id,
+                    Title = x.Title,
+                    ShortDescription = x.ShortDescription,
+                    Content = x.Content,
+                    FeatureImageUrl = x.FeatureImageUrl,
+                    UrlHandle = x.UrlHandle,
+                    PublishDate = x.PublishDate,
+                    Author = x.Author,
+                    IsVisible = x.IsVisible,
+                    Categories = x.Categories.Select(c => new CategoryGetDto
+                    {
+                        Id = c.Id,
+                        Name = c.Name,
+                        UrlHandle = c.UrlHandle,
+                    }).ToList()
+                }).FirstOrDefaultAsync();
+
+            return blogPost;
+        }
+
         public async Task<BlogPostGetDto> GetByUrl(string urlHandle)
         {
             var blogPost = await _appDbContext.BlogPosts
@@ -75,63 +133,7 @@ namespace BlogAppAPI.Repositories
             await _appDbContext.SaveChangesAsync();
         }
 
-        public async Task<List<BlogPostGetDto>> Get(int page = 1)
-        {
-            if (page < 0)
-            {
-                page = 1;
-            }
-
-            var blogPosts = await _appDbContext.BlogPosts
-                .Include(x => x.Categories)
-                .Select(x => new BlogPostGetDto
-                {
-                    Id = x.Id,
-                    Title = x.Title,
-                    ShortDescription = x.ShortDescription,
-                    Content = x.Content,
-                    FeatureImageUrl = x.FeatureImageUrl,
-                    UrlHandle = x.UrlHandle,
-                    PublishDate = x.PublishDate,
-                    Author = x.Author,
-                    IsVisible = x.IsVisible,
-                    Categories = x.Categories.Select(c => new CategoryGetDto
-                    {
-                        Id = c.Id,
-                        Name = c.Name,
-                        UrlHandle = c.UrlHandle
-                    }).ToList()
-                }).Skip((page - 1) * 6).Take(6).ToListAsync();
-
-            return blogPosts;
-        }
-
-        public async Task<BlogPostGetDto> Get(Guid id)
-        {
-            var blogPost = await _appDbContext.BlogPosts
-                .Where(x => x.Id == id)
-                .Include(x => x.Categories).Where(blogPost => blogPost.Id == id)
-                .Select(x => new BlogPostGetDto
-                {
-                    Id = x.Id,
-                    Title = x.Title,
-                    ShortDescription = x.ShortDescription,
-                    Content = x.Content,
-                    FeatureImageUrl = x.FeatureImageUrl,
-                    UrlHandle = x.UrlHandle,
-                    PublishDate = x.PublishDate,
-                    Author = x.Author,
-                    IsVisible = x.IsVisible,
-                    Categories = x.Categories.Select(c => new CategoryGetDto
-                    {
-                        Id = c.Id,
-                        Name = c.Name,
-                        UrlHandle = c.UrlHandle,
-                    }).ToList()
-            }).FirstOrDefaultAsync();
-
-            return blogPost;
-        }
+       
 
         public async Task Update(Guid id, BlogPostCreateDto blogPost)
         {
