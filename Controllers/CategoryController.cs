@@ -2,6 +2,7 @@
 using BlogAppAPI.Models.Domain;
 using BlogAppAPI.Models.DTO;
 using BlogAppAPI.Repositories;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
@@ -12,6 +13,7 @@ namespace BlogAppAPI.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize(Roles = "Admin")]
     public class CategoryController : ControllerBase
     {
         private readonly ICategoryRepository _categoryRepository;
@@ -37,6 +39,7 @@ namespace BlogAppAPI.Controllers
 
         [HttpGet("{id}")]
         [SwaggerOperation("Get Category by Id")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> GetById(Guid id)
         {
             var category = await _categoryRepository.Get(id);
@@ -50,6 +53,7 @@ namespace BlogAppAPI.Controllers
 
         [HttpPost]
         [SwaggerOperation("Create Category")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Create(CategoryCreateDto category)
         {
             if (category.Name == "" || category.UrlHandle == "")
@@ -77,6 +81,7 @@ namespace BlogAppAPI.Controllers
 
         [HttpPut("{id}")]
         [SwaggerOperation("Update Category by Id")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Update(Guid id, CategoryCreateDto category)
         {
             var existingCategory = await _categoryRepository.Get(id);
@@ -99,6 +104,7 @@ namespace BlogAppAPI.Controllers
 
         [HttpDelete("{id}")]
         [SwaggerOperation("Delete Category by Id")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Delete(Guid id)
         {
             var existingCategory = await _categoryRepository.Get(id);
