@@ -1,6 +1,7 @@
 ﻿using BlogAppAPI.Data;
 using BlogAppAPI.Models.Domain;
 using BlogAppAPI.Models.DTO;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.EntityFrameworkCore;
 
 namespace BlogAppAPI.Repositories
@@ -133,13 +134,18 @@ namespace BlogAppAPI.Repositories
             await _appDbContext.SaveChangesAsync();
         }
 
-       
-
         public async Task Update(Guid id, BlogPostCreateDto blogPost)
         {
-            var existingBlogPost = await _appDbContext.BlogPosts.Where(blogPost => blogPost.Id == id).FirstOrDefaultAsync();
-            var newCategories = await _appDbContext.Categories.Where(category => blogPost.Categories.Contains(category.Id)).ToListAsync();
+            var existingBlogPost = await _appDbContext.BlogPosts
+                .Include(bp => bp.Categories)
+                .FirstOrDefaultAsync(bp => bp.Id == id);
 
+            if (existingBlogPost == null)
+            {
+                throw new KeyNotFoundException("BlogPost not found.");
+            }
+
+            // Update the properties of the existing BlogPost
             existingBlogPost.Title = blogPost.Title;
             existingBlogPost.ShortDescription = blogPost.ShortDescription;
             existingBlogPost.Content = blogPost.Content;
@@ -148,10 +154,40 @@ namespace BlogAppAPI.Repositories
             existingBlogPost.PublishDate = blogPost.PublishDate;
             existingBlogPost.Author = blogPost.Author;
             existingBlogPost.IsVisible = blogPost.IsVisible;
+
+            var categories = new List<Guid>();
+            foreach (var categoryId in blogPost.Categories)
+            { 
+                categories.Add(categoryId);
+            }
+
+            existingBlogPost.Categories.Clear();
+            
+            var newCategories = await _appDbContext.Categories
+                .Where(category => categories.Contains(category.Id))
+                .ToListAsync();
+            foreach (var category in newCategories)
+            {
+                existingBlogPost.Categories.Add(category);
+            }
+
             existingBlogPost.Categories = newCategories;
 
-            _appDbContext.BlogPosts.Update(existingBlogPost);
-            await _appDbContext.SaveChangesAsync();
+            try
+            {
+                await _appDbContext.SaveChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!_appDbContext.BlogPosts.Any(e => e.Id == id))
+                {
+                    throw new KeyNotFoundException("BlogPost not found.");
+                }
+                else
+                {
+                    throw;
+                }
+            }
         }
     }
 }
