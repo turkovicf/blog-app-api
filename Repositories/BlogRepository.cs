@@ -15,6 +15,37 @@ namespace BlogAppAPI.Repositories
             _appDbContext = appDbContext;
         }
 
+        public async Task<List<BlogPostGetDto>> GetVisible(int page = 1)
+        {
+            if (page < 0)
+            {
+                page = 1;
+            }
+
+            var blogPosts = await _appDbContext.BlogPosts
+                .Include(x => x.Categories).Where(x => x.IsVisible == true)
+                .Select(x => new BlogPostGetDto
+                {
+                    Id = x.Id,
+                    Title = x.Title,
+                    ShortDescription = x.ShortDescription,
+                    Content = x.Content,
+                    FeatureImageUrl = x.FeatureImageUrl,
+                    UrlHandle = x.UrlHandle,
+                    PublishDate = x.PublishDate,
+                    Author = x.Author,
+                    IsVisible = x.IsVisible,
+                    Categories = x.Categories.Select(c => new CategoryGetDto
+                    {
+                        Id = c.Id,
+                        Name = c.Name,
+                        UrlHandle = c.UrlHandle
+                    }).ToList()
+                }).Skip((page - 1) * 6).Take(6).ToListAsync();
+
+            return blogPosts;
+        }
+
         public async Task<List<BlogPostGetDto>> Get(int page = 1)
         {
             if (page < 0)
@@ -104,6 +135,11 @@ namespace BlogAppAPI.Repositories
         public int Count()
         {
             return _appDbContext.BlogPosts.Count();
+        }
+
+        public int CountVisible()
+        {
+            return _appDbContext.BlogPosts.Where(x => x.IsVisible == true).Count();
         }
 
         public async Task Create(BlogPostCreateDto blogPost)

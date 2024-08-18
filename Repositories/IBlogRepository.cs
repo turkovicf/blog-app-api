@@ -5,6 +5,7 @@ namespace BlogAppAPI.Repositories
 {
     public interface IBlogRepository
     {
+        public Task<List<BlogPostGetDto>> GetVisible(int page = 1);
         public Task<List<BlogPostGetDto>> Get(int page = 1);
         public Task<BlogPostGetDto> Get(Guid id);
         public Task<BlogPostGetDto> GetByUrl(string urlHandle);
@@ -12,5 +13,6 @@ namespace BlogAppAPI.Repositories
         public Task Update(Guid id, BlogPostCreateDto blogPost);
         public Task Delete(Guid id);
         public int Count();
+        public int CountVisible();
     }
 }

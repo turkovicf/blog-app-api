@@ -19,8 +19,30 @@ namespace BlogAppAPI.Controllers
             _blogPostRepository = blogPostRepository;
         }
 
+        [HttpGet("Visible")]
+        [SwaggerOperation("Get Visible Blog Posts by Page")]
+        public async Task<IActionResult> GetVisible(int page = 1)
+        {
+            var blogPosts = await _blogPostRepository.GetVisible(page);
+            var numberOfBlogPosts = _blogPostRepository.CountVisible();
+
+            var result = new BlogPostGetResponseDto
+            {
+                Page = page,
+                BlogPosts = blogPosts,
+            };
+
+            if (blogPosts.Count < 6 || numberOfBlogPosts == page * 6)
+            {
+                result.Page = -1;
+            }
+
+            return Ok(result);
+        }
+
         [HttpGet]
         [SwaggerOperation("Get Blog Posts by Page")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Get(int page = 1)
         {
             var blogPosts = await _blogPostRepository.Get(page);
